@@ -3,7 +3,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from mega import Mega
 
 # Replace 'YOUR_BOT_TOKEN' with the actual token you got from BotFather
-BOT_TOKEN = 'YOUR_BOT_TOKEN'
+BOT_TOKEN = '7934535326:AAGComjQfL589aMO3pG0cNNERjfR4xJEMGI'
 
 # Initialize the Mega.py client
 mega = Mega()
