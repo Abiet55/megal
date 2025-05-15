@@ -1,0 +1,65 @@
+import telegram
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from mega import Mega
+
+# Replace 'YOUR_BOT_TOKEN' with the actual token you got from BotFather
+BOT_TOKEN = 'YOUR_BOT_TOKEN'
+
+# Initialize the Mega.py client
+mega = Mega()
+
+def start(update, context):
+    """Sends a welcome message when the /start command is issued."""
+    update.message.reply_text('Hello! Send me a Mega.nz link, and I will try to download it for you.')
+
+def download_mega(update, context):
+    """Handles messages containing Mega.nz links."""
+    user_message = update.message.text
+    # Basic check if the message contains a Mega.nz link
+    if 'mega.nz' in user_message:
+        update.message.reply_text('Downloading...')
+        try:
+            # Extract the Mega.nz link (assuming it's the only link in the message)
+            mega_link = user_message
+            # Get file information
+            file_info = mega.get_public_url_info(mega_link)
+            file_name = file_info['name']
+            file_size = file_info['size']
+            update.message.reply_text(f'File name: {file_name}\nFile size: {file_size} bytes')
+
+            # Start the download
+            file = mega.download_url(mega_link)
+            update.message.reply_text('Download complete. Sending the file...')
+            context.bot.send_document(chat_id=update.effective_chat.id, document=open(file, 'rb'), filename=file_name)
+
+            # Clean up the downloaded file (optional)
+            import os
+            os.remove(file)
+
+        except Exception as e:
+            update.message.reply_text(f'An error occurred: {e}')
+    else:
+        update.message.reply_text('Please send a valid Mega.nz link.')
+
+def main():
+    """Starts the Telegram bot."""
+    # Create the Updater and pass it your bot's token.
+    updater = Updater(BOT_TOKEN, use_context=True)
+
+    # Get the dispatcher to register handlers
+    dp = updater.dispatcher
+
+    # Handle the /start command
+    dp.add_handler(CommandHandler("start", start))
+
+    # Handle messages containing text (to catch Mega.nz links)
+    dp.add_handler(MessageHandler(Filters.text & (~Filters.command), download_mega))
+
+    # Start the Bot
+    updater.start_polling()
+
+    # Keep the bot running until you press Ctrl-C
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
